@@ -67,6 +67,8 @@ print('y절편 b', lr.intercept_)
 print('\n')
 
 # 모형에 전체 X 데이터를 입력하여 예측한 값 y_hat을 실제 값 y와 비교
+# Y=aX+b
+
 
 #print(X);
 # y(mpg) -- X(weight)
