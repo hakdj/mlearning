@@ -59,5 +59,106 @@ for name, lat, lng in zip(df.학교명, df.위도, df.경도):
 mschool_map.save('./seoul_mschool_location.html')
 
 
+'''
+[Step 3] 데이터 전처리
+'''
+
+# 원핫인코딩(더미 변수)
+from sklearn import preprocessing
+
+label_encoder = preprocessing.LabelEncoder()  # label encoder 생성
+onehot_encoder = preprocessing.OneHotEncoder()  # one hot encoder 생성
+
+onehot_location = label_encoder.fit_transform(df['지역'])
+onehot_code = label_encoder.fit_transform(df['코드'])
+onehot_type = label_encoder.fit_transform(df['유형'])
+onehot_day = label_encoder.fit_transform(df['주야'])
+
+df['location'] = onehot_location
+df['code'] = onehot_code
+df['type'] = onehot_type
+df['day'] = onehot_day
+
+print(df.head())
+print('\n')
+
+'''
+[Step 4] DBSCAN 군집 모형 - sklearn 사용
+'''
+
+# sklearn 라이브러리에서 cluster 군집 모형 가져오기
+from sklearn import cluster
+
+# 분석에 사용할 속성을 선택 (과학고, 외고국제고, 자사고 진학률)
+columns_list = [10, 11, 12]
+X = df.iloc[:, columns_list]
+print(X[:5])
+print('\n')
+
+# 설명 변수 데이터를 정규화
+X = preprocessing.StandardScaler().fit(X).transform(X)
+
+# DBSCAN 모형 객체 생성
+dbm = cluster.DBSCAN(eps=0.2, min_samples=5)
+
+# 모형 학습
+dbm.fit(X)
+
+# 예측 (군집)
+cluster_label = dbm.labels_
+print(cluster_label)
+print('\n')
+
+# 예측 결과를 데이터프레임에 추가
+df['Cluster'] = cluster_label
+print(df)
+print('\n')
+
+#클러스터 값으로 그룹화하고, 그룹별로 내용 출력 (첫 5행만 출력)
+grouped_cols = [0, 1, 3] + columns_list
+grouped = df.groupby('Cluster')
+for key, group in grouped:
+    print('* key :', key)
+    print('* number :', len(group))
+    print(group.iloc[:, grouped_cols].head())
+    print('\n')
+
+# X2 데이터셋에 대하여 위의 과정을 반복(과학고, 외고국제고, 자사고 진학률 + 유형)
+columns_list2 = [10, 11, 14, 23]
+X2 = df.iloc[:, columns_list2]
+print(X2[:5])
+print('\n')
+
+X2 = preprocessing.StandardScaler().fit(X2).transform(X2)
+dbm2 = cluster.DBSCAN(eps=0.2, min_samples=5)
+dbm2.fit(X2)
+df['Cluster2'] = dbm2.labels_
+
+grouped2_cols = [0, 1, 3] + columns_list2
+grouped2 = df.groupby('Cluster2')
+for key, group in grouped2:
+    print('* key :', key)
+    print('* number :', len(group))
+    print(group.iloc[:, grouped2_cols].head())
+    print('\n')
+
+# 분석에 사용할 속성을 선택 (과학고, 외고국제고)
+columns_list3 = [10, 11]
+X3 = df.iloc[:, columns_list3]
+print(X3[:5])
+print('\n')
+
+X3 = preprocessing.StandardScaler().fit(X3).transform(X3)
+dbm3 = cluster.DBSCAN(eps=0.2, min_samples=5)
+dbm3.fit(X3)
+df['Cluster3'] = dbm3.labels_
+
+grouped3_cols = [0, 1, 3] + columns_list3
+grouped3 = df.groupby('Cluster3')
+for key, group in grouped3:
+    print('* key :', key)
+    print('* number :', len(group))
+    print(group.iloc[:, grouped3_cols].head())
+    print('\n')
 
 
